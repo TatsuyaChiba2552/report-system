@@ -1,10 +1,12 @@
+process.env.TZ = "Asia/Bangkok";
+
 const express = require("express");
 const fs = require("fs-extra");
 const cors = require("cors");
+
 const fetch = (...args)=>
 import("node-fetch")
 .then(({default:fetch})=>fetch(...args));
-process.env.TZ = "Asia/Bangkok";
 
 const app = express();
 
@@ -20,7 +22,17 @@ const DISCORD_WEBHOOK =
 function thaiTime(){
 
 return new Date().toLocaleString("th-TH",{
-timeZone:"Asia/Bangkok"
+
+timeZone:"Asia/Bangkok",
+
+year:"numeric",
+month:"2-digit",
+day:"2-digit",
+
+hour:"2-digit",
+minute:"2-digit",
+second:"2-digit"
+
 });
 
 }
@@ -124,11 +136,11 @@ await sendDiscord(
 
 `📢 แจ้งปัญหาใหม่
 
-👤 : ${report.name}
+👤 ${report.name}
 
-🏫 ห้อง : ${report.room}
+🏫 ห้อง ${report.room}
 
-🛠 : ${report.problem}`
+🛠 ${report.problem}`
 
 );
 
@@ -183,11 +195,11 @@ await sendDiscord(
 
 `🛠 รับงานแล้ว
 
-👨‍🔧 : ${req.body.admin}
+👨‍🔧 ${req.body.admin}
 
-🏫 ห้อง : ${report.room}
+🏫 ห้อง ${report.room}
 
-📋 : ${report.problem}`
+📋 ${report.problem}`
 
 );
 
@@ -231,7 +243,7 @@ admin.status =
 "🟢 ว่าง";
 
 admin.lastOnline =
-new Date().toLocaleString("th-TH");
+thaiTime();
 
 }
 
@@ -243,9 +255,9 @@ await sendDiscord(
 
 `✅ งานเสร็จ
 
-👨‍🔧 : ${req.body.admin}
+👨‍🔧 ${req.body.admin}
 
-🏫 ห้อง : ${report.room}`
+🏫 ห้อง ${report.room}`
 
 );
 
@@ -273,7 +285,7 @@ admin.status =
 req.body.status;
 
 admin.lastOnline =
-thaiTime()
+thaiTime();
 
 saveDB(db);
 
