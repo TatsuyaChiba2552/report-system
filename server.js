@@ -136,11 +136,11 @@ await sendDiscord(
 
 `📢 แจ้งปัญหาใหม่
 
-👤 ${report.name}
+👤 : ${report.name}
 
-🏫 ห้อง ${report.room}
+🏫 ห้อง : ${report.room}
 
-🛠 ${report.problem}`
+🛠 : ${report.problem}`
 
 );
 
@@ -195,11 +195,11 @@ await sendDiscord(
 
 `🛠 รับงานแล้ว
 
-👨‍🔧 ${req.body.admin}
+👨‍🔧 : ${req.body.admin}
 
-🏫 ห้อง ${report.room}
+🏫 ห้อง : ${report.room}
 
-📋 ${report.problem}`
+📋 : ${report.problem}`
 
 );
 
@@ -255,9 +255,9 @@ await sendDiscord(
 
 `✅ งานเสร็จ
 
-👨‍🔧 ${req.body.admin}
+👨‍🔧 : ${req.body.admin}
 
-🏫 ห้อง ${report.room}`
+🏫 ห้อง : ${report.room}`
 
 );
 
