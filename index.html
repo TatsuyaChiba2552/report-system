@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ระบบแจ้งปัญหา</title>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:sans-serif;
+}
+
+body{
+  background:#0f172a;
+  color:white;
+  padding:20px;
+}
+
+.main-layout{
+  display:flex;
+  gap:20px;
+  align-items:flex-start;
+}
+
+@media(max-width:768px){
+
+  .main-layout{
+    flex-direction:column;
+  }
+
+}
+
+.container{
+  flex:1;
+  background:#1e293b;
+  padding:25px;
+  border-radius:20px;
+}
+
+.status-panel{
+  width:300px;
+  background:#1e293b;
+  padding:20px;
+  border-radius:20px;
+}
+
+@media(max-width:768px){
+
+  .status-panel{
+    width:100%;
+  }
+
+}
+
+h1,h2{
+  text-align:center;
+  color:#38bdf8;
+  margin-bottom:20px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  margin-top:10px;
+  cursor:pointer;
+  color:white;
+  font-size:16px;
+}
+
+.main-btn{
+  background:#0ea5e9;
+}
+
+.accept-btn{
+  background:#22c55e;
+}
+
+.delete-btn{
+  background:#ef4444;
+}
+
+.teach-btn{
+  background:#eab308;
+}
+
+input, textarea{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  margin-top:10px;
+  background:#334155;
+  color:white;
+}
+
+textarea{
+  height:120px;
+  resize:none;
+}
+
+.hidden{
+  display:none;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:20px;
+}
+
+th, td{
+  border:1px solid #475569;
+  padding:12px;
+  text-align:center;
+}
+
+th{
+  background:#0f172a;
+}
+
+td{
+  background:#334155;
+}
+
+.admin-card{
+  background:#334155;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:10px;
+}
+
+.track-box{
+  background:#334155;
+  padding:20px;
+  border-radius:20px;
+  text-align:center;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="main-layout">
+
+<div class="container">
+
+<!-- หน้าแรก -->
+<div id="homePage">
+
+<h1>ระบบแจ้งปัญหา</h1>
+
+<button class="main-btn"
+onclick="openUserPage()">
+ผู้ใช้ทั่วไป
+</button>
+
+<button class="main-btn"
+onclick="openAdminLogin()">
+แอดมิน
+</button>
+
+</div>
+
+
+<!-- หน้าแจ้ง -->
+<div id="userPage"
+class="hidden">
+
+<h1>แจ้งปัญหา</h1>
+
+<input type="text"
+id="name"
+placeholder="ชื่อผู้แจ้ง">
+
+<input type="text"
+id="room"
+placeholder="เลขห้อง">
+
+<textarea id="problem"
+placeholder="รายละเอียดปัญหา"></textarea>
+
+<button class="main-btn"
+onclick="sendReport()">
+ส่งแจ้งปัญหา
+</button>
+
+<button class="main-btn"
+onclick="goHome()">
+กลับหน้าแรก
+</button>
+
+</div>
+
+
+<!-- Tracking -->
+<div id="trackingPage"
+class="hidden">
+
+<h1>สถานะงาน</h1>
+
+<div class="track-box">
+
+<h2 id="trackingStatus">
+🟡 รอดำเนินการ
+</h2>
+
+<div id="trackingAdmin"></div>
+
+</div>
+
+<button class="main-btn"
+onclick="goHome()">
+กลับหน้าแรก
+</button>
+
+</div>
+
+
+<!-- Login -->
+<div id="adminLoginPage"
+class="hidden">
+
+<h1>เข้าสู่ระบบแอดมิน</h1>
+
+<input type="password"
+id="adminPassword"
+placeholder="รหัสแอดมิน">
+
+<button class="main-btn"
+onclick="loginAdmin()">
+เข้าสู่ระบบ
+</button>
+
+<button class="main-btn"
+onclick="goHome()">
+กลับหน้าแรก
+</button>
+
+<div id="loginError"></div>
+
+</div>
+
+
+<!-- Admin -->
+<div id="adminPage"
+class="hidden">
+
+<h1 id="adminTitle">
+รายการแจ้งปัญหา
+</h1>
+
+<button id="freeBtn"
+class="accept-btn"
+onclick="changeMyStatus('ว่าง')">
+🟢 ว่าง
+</button>
+
+<button id="busyBtn"
+class="delete-btn"
+onclick="changeMyStatus('ไม่ว่าง')">
+🔴 ไม่ว่าง
+</button>
+
+<button id="teachBtn"
+class="teach-btn"
+onclick="changeMyStatus('สอนอยู่')">
+🟡 สอนอยู่
+</button>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>ผู้แจ้ง</th>
+<th>ห้อง</th>
+<th>ปัญหา</th>
+<th>สถานะ</th>
+<th>ผู้รับงาน</th>
+<th>จัดการ</th>
+
+</tr>
+
+</thead>
+
+<tbody id="reportTable"></tbody>
+
+</table>
+
+<button class="main-btn"
+onclick="goHome()">
+ออกจากระบบ
+</button>
+
+</div>
+
+</div>
+
+
+<!-- สถานะแอดมิน -->
+<div class="status-panel">
+
+<h2>สถานะแอดมิน</h2>
+
+<div id="adminStatusList"></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+// URL Apps Script
+const API_URL =
+"https://script.google.com/macros/s/AKfycbzy1d2OMi9tbqe6F-AJk77w3dYrwH7OPSrvOT4fDuyDFyB_20r1l2HfYfYTDX9a0_f1aQ/exec";
+
+const DISCORD_WEBHOOK =
+"ใส่ Webhook URL";
+
+
+const admins = {
+
+"1234":{
+name:"Admin1",
+status:"ว่าง"
+},
+
+"5678":{
+name:"Admin2",
+status:"ไม่ว่าง"
+},
+
+"9999":{
+name:"Admin3",
+status:"สอนอยู่"
+},
+
+"0000":{
+name:"Admin4",
+status:"ว่าง"
+}
+
+};
+
+
+let reports = [];
+
+let currentAdminPassword = null;
+
+let currentUserReportIndex = null;
+
+
+// โหลดข้อมูล
+async function loadReportsFromSheet(){
+
+  try{
+
+    const response =
+      await fetch(API_URL);
+
+    reports =
+      await response.json();
+
+    loadReports();
+
+  }catch(error){
+
+    console.log(error);
+
+  }
+
+}
+
+
+// โหลดสถานะแอดมิน
+function loadAdminStatuses(){
+
+const list =
+document.getElementById("adminStatusList");
+
+list.innerHTML = "";
+
+for(let key in admins){
+
+const admin = admins[key];
+
+list.innerHTML += `
+
+<div class="admin-card">
+
+<div>${admin.name}</div>
+
+<div>${admin.status}</div>
+
+</div>
+
+`;
+
+}
+
+}
+
+
+// ซ่อนทุกหน้า
+function hideAllPages(){
+
+document.getElementById("homePage")
+.classList.add("hidden");
+
+document.getElementById("userPage")
+.classList.add("hidden");
+
+document.getElementById("trackingPage")
+.classList.add("hidden");
+
+document.getElementById("adminLoginPage")
+.classList.add("hidden");
+
+document.getElementById("adminPage")
+.classList.add("hidden");
+
+}
+
+
+// หน้าแรก
+function goHome(){
+
+hideAllPages();
+
+document.getElementById("homePage")
+.classList.remove("hidden");
+
+}
+
+
+// หน้าแจ้งปัญหา
+function openUserPage(){
+
+hideAllPages();
+
+document.getElementById("userPage")
+.classList.remove("hidden");
+
+}
+
+
+// หน้า Tracking
+function openTrackingPage(){
+
+hideAllPages();
+
+document.getElementById("trackingPage")
+.classList.remove("hidden");
+
+updateTrackingPage();
+
+}
+
+
+// หน้า Login
+function openAdminLogin(){
+
+hideAllPages();
+
+document.getElementById("adminLoginPage")
+.classList.remove("hidden");
+
+}
+
+
+// Login
+function loginAdmin(){
+
+const password =
+document.getElementById("adminPassword").value;
+
+if(admins[password]){
+
+currentAdminPassword =
+password;
+
+hideAllPages();
+
+document.getElementById("adminPage")
+.classList.remove("hidden");
+
+loadReports();
+
+}else{
+
+document.getElementById("loginError")
+.innerText =
+"รหัสผ่านไม่ถูกต้อง";
+
+}
+
+}
+
+
+// เปลี่ยนสถานะ
+function changeMyStatus(status){
+
+admins[currentAdminPassword].status =
+status;
+
+loadAdminStatuses();
+
+}
+
+
+// โหลดงาน
+function loadReports(){
+
+const table =
+document.getElementById("reportTable");
+
+table.innerHTML = "";
+
+reports.forEach((report,index)=>{
+
+table.innerHTML += `
+
+<tr>
+
+<td>${report.name}</td>
+
+<td>${report.room}</td>
+
+<td>${report.problem}</td>
+
+<td>${report.status}</td>
+
+<td>${report.admin || "-"}</td>
+
+<td>
+
+<button
+class="accept-btn"
+onclick="acceptJob(${index})">
+รับงาน
+</button>
+
+<button
+class="delete-btn"
+onclick="deleteJob(${index})">
+งานเสร็จ
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+}
+
+
+// รับงาน
+function acceptJob(index){
+
+reports[index].status =
+"🟢 กำลังดำเนินการ";
+
+reports[index].admin =
+admins[currentAdminPassword].name;
+
+loadReports();
+
+updateTrackingPage();
+
+}
+
+
+// ลบงาน
+function deleteJob(index){
+
+reports.splice(index,1);
+
+loadReports();
+
+}
+
+
+// Tracking
+function updateTrackingPage(){
+
+if(currentUserReportIndex === null)
+return;
+
+const report =
+reports[currentUserReportIndex];
+
+if(!report)
+return;
+
+document.getElementById("trackingStatus")
+.innerText =
+report.status;
+
+document.getElementById("trackingAdmin")
+.innerText =
+report.admin
+? "👨‍🔧 " + report.admin + " กำลังไปหา"
+: "";
+
+}
+
+
+// ส่งแจ้ง
+async function sendReport(){
+
+const name =
+document.getElementById("name").value;
+
+const room =
+document.getElementById("room").value;
+
+const problem =
+document.getElementById("problem").value;
+
+if(!name || !room || !problem){
+
+alert("กรอกข้อมูลให้ครบ");
+
+return;
+
+}
+
+
+const report = {
+
+name:name,
+room:room,
+problem:problem,
+status:"🟡 รอดำเนินการ",
+admin:""
+
+};
+
+
+reports.push(report);
+
+currentUserReportIndex =
+reports.length - 1;
+
+
+// ส่งเข้า Google Sheets
+await fetch(API_URL,{
+
+method:"POST",
+
+body:JSON.stringify(report)
+
+});
+
+
+// แจ้ง Discord
+await fetch(DISCORD_WEBHOOK,{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+content:
+
+`📢 มีการแจ้งปัญหาใหม่
+
+👤 ผู้แจ้ง: ${name}
+
+🏫 ห้อง: ${room}
+
+🛠 ปัญหา:
+${problem}`
+
+})
+
+});
+
+
+loadReports();
+
+openTrackingPage();
+
+
+document.getElementById("name").value = "";
+document.getElementById("room").value = "";
+document.getElementById("problem").value = "";
+
+}
+
+
+loadAdminStatuses();
+
+loadReportsFromSheet();
+
+</script>
+
+</body>
+</html>
