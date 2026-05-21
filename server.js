@@ -153,7 +153,7 @@ r=>r.id==req.body.id
 if(report){
 
 report.status =
-"🟢 กำลังดำเนินการ";
+`🟢 ${req.body.admin} กำลังไปหา ห้อง ${report.room}`;
 
 report.admin =
 req.body.admin;
@@ -171,7 +171,7 @@ admin.status =
 "🔴 ไม่ว่าง";
 
 admin.lastOnline =
-new Date().toLocaleString("th-TH");
+thaiTime();
 
 }
 
