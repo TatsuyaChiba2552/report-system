@@ -1,0 +1,25 @@
+{
+  "reports": [],
+  "admins": [
+    {
+      "name":"Admin1",
+      "status":"🟢 ว่าง",
+      "lastOnline":""
+    },
+    {
+      "name":"Admin2",
+      "status":"🟢 ว่าง",
+      "lastOnline":""
+    },
+    {
+      "name":"Admin3",
+      "status":"🟢 ว่าง",
+      "lastOnline":""
+    },
+    {
+      "name":"Admin4",
+      "status":"🟢 ว่าง",
+      "lastOnline":""
+    }
+  ]
+}
