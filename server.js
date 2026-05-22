@@ -16,7 +16,7 @@ app.use(express.json());
 const DB_FILE = "db.json";
 
 const DISCORD_WEBHOOK =
-"ใส่ Discord Webhook";
+"https://discord.com/api/webhooks/1506876755577929810/NaRG_f8-mln2ZvsSGgAJCl4azBmzTdD9ufBGzULS1hLAQ202DqEJdra4KBeGNJ7aRxYd";
 
 
 function thaiTime(){
