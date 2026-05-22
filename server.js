@@ -16,7 +16,7 @@ app.use(express.json());
 const DB_FILE = "db.json";
 
 const DISCORD_WEBHOOK =
-"https://discord.com/api/webhooks/1506876755577929810/NaRG_f8-mln2ZvsSGgAJCl4azBmzTdD9ufBGzULS1hLAQ202DqEJdra4KBeGNJ7aRxYd";
+"ใส่ Discord Webhook";
 
 
 function thaiTime(){
@@ -136,17 +136,18 @@ await sendDiscord(
 
 `📢 แจ้งปัญหาใหม่
 
-👤 : ${report.name}
+👤 ${report.name}
 
-🏫 ห้อง : ${report.room}
+🏫 ห้อง ${report.room}
 
-🛠 : ${report.problem}`
+🛠 ${report.problem}`
 
 );
 
 
 res.json({
-success:true
+success:true,
+id:report.id
 });
 
 });
@@ -195,11 +196,11 @@ await sendDiscord(
 
 `🛠 รับงานแล้ว
 
-👨‍🔧 : ${req.body.admin}
+👨‍🔧 ${req.body.admin}
 
-🏫 ห้อง : ${report.room}
+🏫 ห้อง ${report.room}
 
-📋 : ${report.problem}`
+📋 ${report.problem}`
 
 );
 
@@ -255,9 +256,9 @@ await sendDiscord(
 
 `✅ งานเสร็จ
 
-👨‍🔧 : ${req.body.admin}
+👨‍🔧 ${req.body.admin}
 
-🏫 ห้อง : ${report.room}`
+🏫 ห้อง ${report.room}`
 
 );
 
@@ -269,7 +270,7 @@ success:true
 });
 
 
-// เปลี่ยนสถานะเอง
+// เปลี่ยนสถานะ
 app.post("/admin-status",(req,res)=>{
 
 const db = loadDB();
