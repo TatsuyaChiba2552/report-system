@@ -1,62 +1,82 @@
-process.env.TZ = "Asia/Bangkok";
-
 const express = require("express");
-const fs = require("fs-extra");
 const cors = require("cors");
-
-const fetch = (...args)=>
-import("node-fetch")
-.then(({default:fetch})=>fetch(...args));
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const DB_FILE = "db.json";
+const PORT = process.env.PORT || 3000;
+
+
+/* =========================
+   TOKENS
+========================= */
+
+const LINE_TOKEN =
+"6719fc2156ad4e5c7980a7123ab246f3";
 
 const DISCORD_WEBHOOK =
 "https://discord.com/api/webhooks/1506876755577929810/NaRG_f8-mln2ZvsSGgAJCl4azBmzTdD9ufBGzULS1hLAQ202DqEJdra4KBeGNJ7aRxYd";
 
 
-function thaiTime(){
+/* =========================
+   DATA
+========================= */
 
-return new Date().toLocaleString("th-TH",{
+let reports = [];
 
-timeZone:"Asia/Bangkok",
+let admins = [];
 
-year:"numeric",
-month:"2-digit",
-day:"2-digit",
 
-hour:"2-digit",
-minute:"2-digit",
-second:"2-digit"
+/* =========================
+   LINE NOTIFY
+========================= */
+
+async function sendLine(message){
+
+try{
+
+await fetch(
+"https://api.line.me/v2/bot/message/broadcast",
+{
+method:"POST",
+
+headers:{
+"Content-Type":"application/json",
+"Authorization":
+"Bearer " + LINE_TOKEN
+},
+
+body:JSON.stringify({
+
+messages:[
+{
+type:"text",
+text:message
+}
+]
+
+})
 
 });
 
+console.log("LINE SENT");
+
+}catch(err){
+
+console.log("LINE ERROR");
+console.log(err);
+
 }
-
-
-// โหลด DB
-function loadDB(){
-
-return fs.readJsonSync(DB_FILE);
-
-}
-
-
-// บันทึก DB
-function saveDB(data){
-
-fs.writeJsonSync(DB_FILE,data,{
-spaces:2
-});
 
 }
 
 
-// Discord
+/* =========================
+   DISCORD NOTIFY
+========================= */
+
 async function sendDiscord(message){
 
 try{
@@ -77,70 +97,83 @@ content:message
 
 });
 
-}catch(error){
+console.log("DISCORD SENT");
 
-console.log(error);
+}catch(err){
+
+console.log("DISCORD ERROR");
+console.log(err);
 
 }
 
 }
 
 
-// โหลดงาน
+/* =========================
+   SEND BOTH
+========================= */
+
+async function sendNotify(message){
+
+await sendLine(message);
+
+await sendDiscord(message);
+
+}
+
+
+/* =========================
+   GET REPORTS
+========================= */
+
 app.get("/reports",(req,res)=>{
 
-const db = loadDB();
-
-res.json(db.reports);
+res.json(reports);
 
 });
 
 
-// โหลดแอดมิน
-app.get("/admins",(req,res)=>{
+/* =========================
+   SEND REPORT
+========================= */
 
-const db = loadDB();
-
-res.json(db.admins);
-
-});
-
-
-// แจ้งปัญหา
 app.post("/report",async(req,res)=>{
 
-const db = loadDB();
+const {
+name,
+room,
+problem
+} = req.body;
 
 const report = {
 
 id:Date.now(),
 
-name:req.body.name,
-
-room:req.body.room,
-
-problem:req.body.problem,
+name,
+room,
+problem,
 
 status:"🟡 รอดำเนินการ",
 
-admin:""
+admin:null
 
 };
 
-db.reports.push(report);
-
-saveDB(db);
+reports.push(report);
 
 
-await sendDiscord(
+/* แจ้งเตือน */
 
-`📢 แจ้งปัญหาใหม่
+await sendNotify(
 
-👤 ${report.name}
+`📢 มีงานใหม่เข้ามา
 
-🏫 ห้อง ${report.room}
+👤 ผู้แจ้ง: ${name}
 
-🛠 ${report.problem}`
+🏠 ห้อง: ${room}
+
+🛠 ปัญหา:
+${problem}`
 
 );
 
@@ -153,59 +186,44 @@ id:report.id
 });
 
 
-// รับงาน
+/* =========================
+   ACCEPT JOB
+========================= */
+
 app.post("/accept",async(req,res)=>{
 
-const db = loadDB();
+const {
+id,
+admin
+} = req.body;
 
 const report =
-db.reports.find(
-r=>r.id==req.body.id
-);
+reports.find(r=>r.id == id);
 
 if(report){
 
 report.status =
-`🟢 ${req.body.admin} กำลังไปหา ห้อง ${report.room}`;
+"🟢 กำลังดำเนินการ";
 
 report.admin =
-req.body.admin;
+admin;
 
 
-// เปลี่ยนสถานะแอดมิน
-const admin =
-db.admins.find(
-a=>a.name==req.body.admin
-);
+/* แจ้งเตือน */
 
-if(admin){
+await sendNotify(
 
-admin.status =
-"🔴 ไม่ว่าง";
+`✅ มีแอดมินรับงานแล้ว
 
-admin.lastOnline =
-thaiTime();
+👨‍🔧 ${admin}
 
-}
+👤 ${report.name}
 
-
-saveDB(db);
-
-
-await sendDiscord(
-
-`🛠 รับงานแล้ว
-
-👨‍🔧 ${req.body.admin}
-
-🏫 ห้อง ${report.room}
-
-📋 ${report.problem}`
+🏠 ห้อง ${report.room}`
 
 );
 
 }
-
 
 res.json({
 success:true
@@ -214,54 +232,45 @@ success:true
 });
 
 
-// งานเสร็จ
+/* =========================
+   FINISH JOB
+========================= */
+
 app.post("/finish",async(req,res)=>{
 
-const db = loadDB();
+const {
+id,
+admin
+} = req.body;
+
+const index =
+reports.findIndex(
+r=>r.id == id
+);
+
+if(index !== -1){
 
 const report =
-db.reports.find(
-r=>r.id==req.body.id
+reports[index];
+
+
+/* แจ้งเตือน */
+
+await sendNotify(
+
+`🎉 งานเสร็จแล้ว
+
+👨‍🔧 ${admin}
+
+👤 ${report.name}
+
+🏠 ห้อง ${report.room}`
+
 );
 
-
-// ลบงาน
-db.reports =
-db.reports.filter(
-r=>r.id!=req.body.id
-);
-
-
-// เปลี่ยนกลับว่าง
-const admin =
-db.admins.find(
-a=>a.name==req.body.admin
-);
-
-if(admin){
-
-admin.status =
-"🟢 ว่าง";
-
-admin.lastOnline =
-thaiTime();
+reports.splice(index,1);
 
 }
-
-
-saveDB(db);
-
-
-await sendDiscord(
-
-`✅ งานเสร็จ
-
-👨‍🔧 ${req.body.admin}
-
-🏫 ห้อง ${report.room}`
-
-);
-
 
 res.json({
 success:true
@@ -270,28 +279,42 @@ success:true
 });
 
 
-// เปลี่ยนสถานะ
+/* =========================
+   ADMIN STATUS
+========================= */
+
 app.post("/admin-status",(req,res)=>{
 
-const db = loadDB();
+const {
+name,
+status
+} = req.body;
 
-const admin =
-db.admins.find(
-a=>a.name==req.body.name
+const time =
+new Date()
+.toLocaleTimeString("th-TH");
+
+const found =
+admins.find(
+a=>a.name === name
 );
 
-if(admin){
+if(found){
 
-admin.status =
-req.body.status;
+found.status = status;
+found.lastOnline = time;
 
-admin.lastOnline =
-thaiTime();
+}else{
 
-saveDB(db);
+admins.push({
+
+name,
+status,
+lastOnline:time
+
+});
 
 }
-
 
 res.json({
 success:true
@@ -300,10 +323,25 @@ success:true
 });
 
 
-app.listen(3000,()=>{
+/* =========================
+   GET ADMINS
+========================= */
+
+app.get("/admins",(req,res)=>{
+
+res.json(admins);
+
+});
+
+
+/* =========================
+   START SERVER
+========================= */
+
+app.listen(PORT,()=>{
 
 console.log(
-"Server Running"
+"SERVER RUNNING : " + PORT
 );
 
 });
