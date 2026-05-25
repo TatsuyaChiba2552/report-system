@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import fs from "fs-extra";
 import fetch from "node-fetch";
 
 const app = express();
@@ -9,65 +10,101 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
+const DB_FILE = "./db.json";
+
 
 /* =========================
-   TOKENS
+   LINE TOKEN
 ========================= */
 
 const LINE_TOKEN =
 "Q2cTEV4oF1mbfcQQv8BTgn+7dW9Ahk891HvzlytD9ItLvIT58PtvAnjBm8tLbv+35fdGiK3xQyiQ1wE+9rhb4RNcMU2zRBG+Q6pypb/ALHyirrhq6/iLdLIqR5h0OSuTCpv/x83A7jjwPOpV6yLcqgdB04t89/1O/w1cDnyilFU=";
 
+
+/* =========================
+   DISCORD WEBHOOK
+========================= */
+
 const DISCORD_WEBHOOK =
 "https://discord.com/api/webhooks/1506876755577929810/NaRG_f8-mln2ZvsSGgAJCl4azBmzTdD9ufBGzULS1hLAQ202DqEJdra4KBeGNJ7aRxYd";
 
 
+
 /* =========================
-   DATA
+   CREATE DB
 ========================= */
 
-let reports = [];
+if(!fs.existsSync(DB_FILE)){
 
-let admins = [];
+fs.writeJsonSync(DB_FILE,{
+reports:[],
+admins:[]
+});
+
+}
 
 
 /* =========================
-   LINE NOTIFY
+   READ DB
+========================= */
+
+async function readDB(){
+
+return await fs.readJson(DB_FILE);
+
+}
+
+
+/* =========================
+   WRITE DB
+========================= */
+
+async function writeDB(data){
+
+await fs.writeJson(
+DB_FILE,
+data,
+{ spaces:2 }
+);
+
+}
+
+
+/* =========================
+   SEND LINE
 ========================= */
 
 async function sendLine(message){
 
+if(!LINE_TOKEN) return;
+
 try{
 
 await fetch(
-"https://api.line.me/v2/bot/message/broadcast",
+"https://notify-api.line.me/api/notify",
 {
+
 method:"POST",
 
 headers:{
-"Content-Type":"application/json",
+"Content-Type":
+"application/x-www-form-urlencoded",
+
 "Authorization":
-"Bearer " + LINE_TOKEN
+`Bearer ${LINE_TOKEN}`
 },
 
-body:JSON.stringify({
-
-messages:[
-{
-type:"text",
-text:message
-}
-]
-
-})
+body:
+`message=${encodeURIComponent(message)}`
 
 });
 
-console.log("LINE SENT");
-
 }catch(err){
 
-console.log("LINE ERROR");
-console.log(err);
+console.log(
+"LINE ERROR",
+err
+);
 
 }
 
@@ -75,10 +112,12 @@ console.log(err);
 
 
 /* =========================
-   DISCORD NOTIFY
+   SEND DISCORD
 ========================= */
 
 async function sendDiscord(message){
+
+if(!DISCORD_WEBHOOK) return;
 
 try{
 
@@ -98,27 +137,14 @@ content:message
 
 });
 
-console.log("DISCORD SENT");
-
 }catch(err){
 
-console.log("DISCORD ERROR");
-console.log(err);
+console.log(
+"DISCORD ERROR",
+err
+);
 
 }
-
-}
-
-
-/* =========================
-   SEND BOTH
-========================= */
-
-async function sendNotify(message){
-
-await sendLine(message);
-
-await sendDiscord(message);
 
 }
 
@@ -127,20 +153,12 @@ await sendDiscord(message);
    GET REPORTS
 ========================= */
 
-app.get("/reports",(req,res)=>{
+app.get("/reports",async(req,res)=>{
 
-res.json(reports);
+const db =
+await readDB();
 
-});
-
-
-/* =========================
-   GET ADMINS
-========================= */
-
-app.get("/admins",(req,res)=>{
-
-res.json(admins);
+res.json(db.reports);
 
 });
 
@@ -151,30 +169,18 @@ res.json(admins);
 
 app.post("/report",async(req,res)=>{
 
-try{
-
-const {
-name,
-room,
-problem
-} = req.body;
-
-if(!name || !room || !problem){
-
-return res.status(400).json({
-success:false,
-message:"ข้อมูลไม่ครบ"
-});
-
-}
+const db =
+await readDB();
 
 const report = {
 
 id:Date.now(),
 
-name,
-room,
-problem,
+name:req.body.name,
+
+room:req.body.room,
+
+problem:req.body.problem,
 
 status:"🟡 รอดำเนินการ",
 
@@ -182,39 +188,38 @@ admin:null
 
 };
 
-reports.push(report);
+db.reports.push(report);
+
+await writeDB(db);
 
 
-/* แจ้งเตือน */
+/* =========================
+   MESSAGE
+========================= */
 
-await sendNotify(
+const msg =
 
-`📢 มีงานใหม่เข้ามา
+`📢 มีงานแจ้งปัญหาใหม่
 
-👤 ผู้แจ้ง: ${name}
+👤 ผู้แจ้ง: ${report.name}
 
-🏠 ห้อง: ${room}
+🏠 ห้อง: ${report.room}
 
-🛠 ปัญหา:
-${problem}`
-
-);
+📝 ปัญหา:
+${report.problem}`;
 
 
-res.json({
-success:true,
-id:report.id
-});
+/* LINE */
 
-}catch(err){
+sendLine(msg);
 
-console.log(err);
 
-res.status(500).json({
-success:false
-});
+/* DISCORD */
 
-}
+sendDiscord(msg);
+
+
+res.json(report);
 
 });
 
@@ -225,16 +230,12 @@ success:false
 
 app.post("/accept",async(req,res)=>{
 
-try{
-
-const {
-id,
-admin
-} = req.body;
+const db =
+await readDB();
 
 const report =
-reports.find(
-r=>r.id == id
+db.reports.find(
+r=>r.id == req.body.id
 );
 
 if(report){
@@ -243,38 +244,35 @@ report.status =
 "🟢 กำลังดำเนินการ";
 
 report.admin =
-admin;
+req.body.admin;
 
 
 /* แจ้งเตือน */
 
-await sendNotify(
+const msg =
 
 `✅ มีแอดมินรับงานแล้ว
 
-👨‍🔧 ${admin}
+👨‍💻 แอดมิน:
+${req.body.admin}
 
-👤 ${report.name}
+👤 ผู้แจ้ง:
+${report.name}
 
-🏠 ห้อง ${report.room}`
+🏠 ห้อง:
+${report.room}`;
 
-);
+sendLine(msg);
+
+sendDiscord(msg);
 
 }
+
+await writeDB(db);
 
 res.json({
 success:true
 });
-
-}catch(err){
-
-console.log(err);
-
-res.status(500).json({
-success:false
-});
-
-}
 
 });
 
@@ -285,138 +283,112 @@ success:false
 
 app.post("/finish",async(req,res)=>{
 
-try{
-
-const {
-id,
-admin
-} = req.body;
-
-const index =
-reports.findIndex(
-r=>r.id == id
-);
-
-if(index !== -1){
+const db =
+await readDB();
 
 const report =
-reports[index];
+db.reports.find(
+r=>r.id == req.body.id
+);
 
+if(report){
 
-/* แจ้งเตือน */
-
-await sendNotify(
+const msg =
 
 `🎉 งานเสร็จแล้ว
 
-👨‍🔧 ${admin}
+👤 ผู้แจ้ง:
+${report.name}
 
-👤 ${report.name}
+🏠 ห้อง:
+${report.room}
 
-🏠 ห้อง ${report.room}`
+👨‍💻 ผู้ดำเนินการ:
+${req.body.admin}`;
 
-);
+sendLine(msg);
 
-reports.splice(index,1);
+sendDiscord(msg);
 
 }
+
+
+db.reports =
+db.reports.filter(
+r=>r.id != req.body.id
+);
+
+await writeDB(db);
 
 res.json({
 success:true
 });
 
-}catch(err){
-
-console.log(err);
-
-res.status(500).json({
-success:false
 });
 
-}
+
+/* =========================
+   GET ADMINS
+========================= */
+
+app.get("/admins",async(req,res)=>{
+
+const db =
+await readDB();
+
+res.json(db.admins);
 
 });
 
 
 /* =========================
-   ADMIN STATUS
+   UPDATE ADMIN STATUS
 ========================= */
 
-app.post("/admin-status",(req,res)=>{
+app.post("/admin-status",async(req,res)=>{
 
-try{
+const db =
+await readDB();
 
 const {
 name,
 status
 } = req.body;
 
-if(!name){
 
-return res.status(400).json({
-success:false
-});
-
-}
-
-const time =
-new Date().toLocaleTimeString(
-"th-TH"
+const admin =
+db.admins.find(
+a=>a.name === name
 );
 
-const adminIndex =
-admins.findIndex(
-a => a.name === name
-);
+if(admin){
 
-if(adminIndex !== -1){
-
-admins[adminIndex].status =
+admin.status =
 status;
 
-admins[adminIndex].lastOnline =
-time;
-
-}else{
-
-admins.push({
-
-name,
-status,
-lastOnline:time
-
-});
+admin.lastOnline =
+new Date()
+.toLocaleTimeString("th-TH");
 
 }
 
-console.log(admins);
+await writeDB(db);
 
 res.json({
-success:true,
-admins
+success:true
 });
-
-}catch(err){
-
-console.log(err);
-
-res.status(500).json({
-success:false
-});
-
-}
 
 });
 
 
 /* =========================
-   START SERVER
+   START
 ========================= */
 
 app.listen(PORT,()=>{
 
 console.log(
-"SERVER RUNNING : " + PORT
+"Server running on port " + PORT
 );
 
 });
