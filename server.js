@@ -17,8 +17,15 @@ const DB_FILE = "./db.json";
    LINE TOKEN
 ========================= */
 
-const LINE_TOKEN =
-"Q2cTEV4oF1mbfcQQv8BTgn+7dW9Ahk891HvzlytD9ItLvIT58PtvAnjBm8tLbv+35fdGiK3xQyiQ1wE+9rhb4RNcMU2zRBG+Q6pypb/ALHyirrhq6/iLdLIqR5h0OSuTCpv/x83A7jjwPOpV6yLcqgdB04t89/1O/w1cDnyilFU=";
+/* =========================
+   LINE TOKEN
+========================= */
+
+const LINE_CHANNEL_ACCESS_TOKEN =
+"ใส่_CHANNEL_ACCESS_TOKEN";
+
+const LINE_USER_ID =
+"ใส่_USER_ID";
 
 
 /* =========================
@@ -27,7 +34,6 @@ const LINE_TOKEN =
 
 const DISCORD_WEBHOOK =
 "https://discord.com/api/webhooks/1506876755577929810/NaRG_f8-mln2ZvsSGgAJCl4azBmzTdD9ufBGzULS1hLAQ202DqEJdra4KBeGNJ7aRxYd";
-
 
 
 /* =========================
@@ -76,35 +82,26 @@ data,
 
 async function sendLine(message){
 
-if(!LINE_TOKEN) return;
+if(
+!LINE_CHANNEL_ACCESS_TOKEN ||
+!LINE_USER_ID
+) return;
 
 try{
 
 await fetch(
-"https://notify-api.line.me/api/notify",
+"https://api.line.me/v2/bot/message/push",
 {
 
 method:"POST",
 
 headers:{
-"Content-Type":
-"application/x-www-form-urlencoded",
+
+"Content-Type":"application/json",
 
 "Authorization":
-`Bearer ${LINE_TOKEN}`
-},
+`Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`
 
-body:
-`message=${encodeURIComponent(message)}`
-
-});
-
-}catch(err){
-
-console.log(
-"LINE ERROR",
-err
-);
 
 }
 
