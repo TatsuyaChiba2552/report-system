@@ -351,19 +351,31 @@ name,
 status
 } = req.body;
 
-const time =
-new Date()
-.toLocaleTimeString("th-TH");
+if(!name){
 
-const found =
-admins.find(
-a=>a.name === name
+return res.status(400).json({
+success:false
+});
+
+}
+
+const time =
+new Date().toLocaleTimeString(
+"th-TH"
 );
 
-if(found){
+const adminIndex =
+admins.findIndex(
+a => a.name === name
+);
 
-found.status = status;
-found.lastOnline = time;
+if(adminIndex !== -1){
+
+admins[adminIndex].status =
+status;
+
+admins[adminIndex].lastOnline =
+time;
 
 }else{
 
@@ -377,8 +389,11 @@ lastOnline:time
 
 }
 
+console.log(admins);
+
 res.json({
-success:true
+success:true,
+admins
 });
 
 }catch(err){
@@ -405,3 +420,4 @@ console.log(
 );
 
 });
+```
