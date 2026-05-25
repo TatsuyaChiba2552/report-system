@@ -135,16 +135,38 @@ res.json(reports);
 
 
 /* =========================
+   GET ADMINS
+========================= */
+
+app.get("/admins",(req,res)=>{
+
+res.json(admins);
+
+});
+
+
+/* =========================
    SEND REPORT
 ========================= */
 
 app.post("/report",async(req,res)=>{
+
+try{
 
 const {
 name,
 room,
 problem
 } = req.body;
+
+if(!name || !room || !problem){
+
+return res.status(400).json({
+success:false,
+message:"ข้อมูลไม่ครบ"
+});
+
+}
 
 const report = {
 
@@ -184,6 +206,16 @@ success:true,
 id:report.id
 });
 
+}catch(err){
+
+console.log(err);
+
+res.status(500).json({
+success:false
+});
+
+}
+
 });
 
 
@@ -193,13 +225,17 @@ id:report.id
 
 app.post("/accept",async(req,res)=>{
 
+try{
+
 const {
 id,
 admin
 } = req.body;
 
 const report =
-reports.find(r=>r.id == id);
+reports.find(
+r=>r.id == id
+);
 
 if(report){
 
@@ -230,6 +266,16 @@ res.json({
 success:true
 });
 
+}catch(err){
+
+console.log(err);
+
+res.status(500).json({
+success:false
+});
+
+}
+
 });
 
 
@@ -238,6 +284,8 @@ success:true
 ========================= */
 
 app.post("/finish",async(req,res)=>{
+
+try{
 
 const {
 id,
@@ -277,6 +325,16 @@ res.json({
 success:true
 });
 
+}catch(err){
+
+console.log(err);
+
+res.status(500).json({
+success:false
+});
+
+}
+
 });
 
 
@@ -285,6 +343,8 @@ success:true
 ========================= */
 
 app.post("/admin-status",(req,res)=>{
+
+try{
 
 const {
 name,
@@ -321,16 +381,15 @@ res.json({
 success:true
 });
 
+}catch(err){
+
+console.log(err);
+
+res.status(500).json({
+success:false
 });
 
-
-/* =========================
-   GET ADMINS
-========================= */
-
-app.get("/admins",(req,res)=>{
-
-res.json(admins);
+}
 
 });
 
