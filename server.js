@@ -17,10 +17,6 @@ const DB_FILE = "./db.json";
    LINE TOKEN
 ========================= */
 
-/* =========================
-   LINE TOKEN
-========================= */
-
 const LINE_CHANNEL_ACCESS_TOKEN =
 "Q2cTEV4oF1mbfcQQv8BTgn+7dW9Ahk891HvzlytD9ItLvIT58PtvAnjBm8tLbv+35fdGiK3xQyiQ1wE+9rhb4RNcMU2zRBG+Q6pypb/ALHyirrhq6/iLdLIqR5h0OSuTCpv/x83A7jjwPOpV6yLcqgdB04t89/1O/w1cDnyilFU=";
 
