@@ -22,10 +22,13 @@ const DB_FILE = "./db.json";
 ========================= */
 
 const LINE_CHANNEL_ACCESS_TOKEN =
-"ใส่_CHANNEL_ACCESS_TOKEN";
+"Q2cTEV4oF1mbfcQQv8BTgn+7dW9Ahk891HvzlytD9ItLvIT58PtvAnjBm8tLbv+35fdGiK3xQyiQ1wE+9rhb4RNcMU2zRBG+Q6pypb/ALHyirrhq6/iLdLIqR5h0OSuTCpv/x83A7jjwPOpV6yLcqgdB04t89/1O/w1cDnyilFU=";
 
-const LINE_USER_ID =
-"ใส่_USER_ID";
+const LINE_USER_ID = [
+"ใส่_USER_ID",
+"ใส่_USER_ID"
+
+];
 
 
 /* =========================
@@ -84,10 +87,12 @@ async function sendLine(message){
 
 if(
 !LINE_CHANNEL_ACCESS_TOKEN ||
-!LINE_USER_ID
+LINE_USER_IDS.length === 0
 ) return;
 
 try{
+
+for(const userId of LINE_USER_IDS){
 
 await fetch(
 "https://api.line.me/v2/bot/message/push",
@@ -102,11 +107,37 @@ headers:{
 "Authorization":
 `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`
 
+},
+
+body:JSON.stringify({
+
+to:userId,
+
+messages:[
+
+{
+type:"text",
+text:message
+}
+
+]
+
+})
+
+});
+
+}
+
+}catch(err){
+
+console.log(
+"LINE ERROR",
+err
+);
 
 }
 
 }
-
 
 /* =========================
    SEND DISCORD
