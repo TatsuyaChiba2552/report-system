@@ -1,7 +1,7 @@
 {
   "name": "report-system",
   "version": "1.0.0",
-  "description": "Realtime Support System with LINE and Discord Notify",
+  "description": "Realtime Support System",
   "main": "server.js",
   "type": "module",
   "scripts": {
