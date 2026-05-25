@@ -22,7 +22,7 @@ const LINE_CHANNEL_ACCESS_TOKEN =
 
 const LINE_USER_IDS = [
 "0807512773",
-"ใส่_USER_ID"
+"xm8xm8tee"
 
 ];
 
@@ -84,25 +84,25 @@ async function sendLine(message){
 if(
 !LINE_CHANNEL_ACCESS_TOKEN ||
 LINE_USER_IDS.length === 0
-) return;
-
-try{
+){
+console.log("LINE NOT CONFIG");
+return;
+}
 
 for(const userId of LINE_USER_IDS){
 
-await fetch(
+try{
+
+const response = await fetch(
 "https://api.line.me/v2/bot/message/push",
 {
 
 method:"POST",
 
 headers:{
-
 "Content-Type":"application/json",
-
 "Authorization":
 `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`
-
 },
 
 body:JSON.stringify({
@@ -110,26 +110,31 @@ body:JSON.stringify({
 to:userId,
 
 messages:[
-
 {
 type:"text",
 text:message
 }
-
 ]
 
 })
 
 });
 
-}
+const result = await response.text();
+
+console.log(
+"LINE RESPONSE:",
+result
+);
 
 }catch(err){
 
 console.log(
-"LINE ERROR",
+"LINE ERROR:",
 err
 );
+
+}
 
 }
 
@@ -414,5 +419,26 @@ app.listen(PORT,()=>{
 console.log(
 "Server running on port " + PORT
 );
+
+});
+
+app.post("/webhook",async(req,res)=>{
+
+const events = req.body.events;
+
+for(const event of events){
+
+if(event.source?.userId){
+
+console.log(
+"USER ID:",
+event.source.userId
+);
+
+}
+
+}
+
+res.sendStatus(200);
 
 });
