@@ -14,15 +14,23 @@ const DB_FILE = "./db.json";
 
 
 /* =========================
-   LINE TOKEN
+   LINE BOT
 ========================= */
 
 const LINE_CHANNEL_ACCESS_TOKEN =
 "Q2cTEV4oF1mbfcQQv8BTgn+7dW9Ahk891HvzlytD9ItLvIT58PtvAnjBm8tLbv+35fdGiK3xQyiQ1wE+9rhb4RNcMU2zRBG+Q6pypb/ALHyirrhq6/iLdLIqR5h0OSuTCpv/x83A7jjwPOpV6yLcqgdB04t89/1O/w1cDnyilFU=";
 
+/*
+ใส่ USER ID ของคนที่ต้องการรับแจ้งเตือน
+ทุกคนต้อง:
+- แอดบอท
+- เคยส่งข้อความหาบอทแล้ว
+*/
+
 const LINE_USER_IDS = [
-"0807512773",
-"xm8xm8tee"
+
+"xm8xm8tee",
+"0807512773"
 
 ];
 
@@ -42,8 +50,43 @@ const DISCORD_WEBHOOK =
 if(!fs.existsSync(DB_FILE)){
 
 fs.writeJsonSync(DB_FILE,{
+
 reports:[],
-admins:[]
+
+admins:[
+
+{
+name:"Admin1",
+status:"🟢 ว่าง",
+lastOnline:""
+},
+
+{
+name:"Admin2",
+status:"🟢 ว่าง",
+lastOnline:""
+},
+
+{
+name:"นาย ธีรศักดิ์ คำอินทร์ (นักศึกษาฝึกงาน)",
+status:"🟢 ว่าง",
+lastOnline:""
+},
+
+{
+name:"นาย ชาคริต จันทร์ใหม่ (นักศึกษาฝึกงาน)",
+status:"🟢 ว่าง",
+lastOnline:""
+},
+
+{
+name:"นาย ณรงค์พล อินต๊ะคำ (นักศึกษาฝึกงาน)",
+status:"🟢 ว่าง",
+lastOnline:""
+}
+
+]
+
 });
 
 }
@@ -85,8 +128,11 @@ if(
 !LINE_CHANNEL_ACCESS_TOKEN ||
 LINE_USER_IDS.length === 0
 ){
+
 console.log("LINE NOT CONFIG");
+
 return;
+
 }
 
 for(const userId of LINE_USER_IDS){
@@ -100,9 +146,12 @@ const response = await fetch(
 method:"POST",
 
 headers:{
+
 "Content-Type":"application/json",
+
 "Authorization":
 `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`
+
 },
 
 body:JSON.stringify({
@@ -110,17 +159,20 @@ body:JSON.stringify({
 to:userId,
 
 messages:[
+
 {
 type:"text",
 text:message
 }
+
 ]
 
 })
 
 });
 
-const result = await response.text();
+const result =
+await response.text();
 
 console.log(
 "LINE RESPONSE:",
@@ -140,16 +192,24 @@ err
 
 }
 
+
 /* =========================
    SEND DISCORD
 ========================= */
 
 async function sendDiscord(message){
 
-if(!DISCORD_WEBHOOK) return;
+if(!DISCORD_WEBHOOK){
+
+console.log("DISCORD NOT CONFIG");
+
+return;
+
+}
 
 try{
 
+const response =
 await fetch(DISCORD_WEBHOOK,{
 
 method:"POST",
@@ -166,10 +226,18 @@ content:message
 
 });
 
+const result =
+await response.text();
+
+console.log(
+"DISCORD RESPONSE:",
+result
+);
+
 }catch(err){
 
 console.log(
-"DISCORD ERROR",
+"DISCORD ERROR:",
 err
 );
 
@@ -240,12 +308,12 @@ ${report.problem}`;
 
 /* LINE */
 
-sendLine(msg);
+await sendLine(msg);
 
 
 /* DISCORD */
 
-sendDiscord(msg);
+await sendDiscord(msg);
 
 
 res.json(report);
@@ -291,9 +359,9 @@ ${report.name}
 🏠 ห้อง:
 ${report.room}`;
 
-sendLine(msg);
+await sendLine(msg);
 
-sendDiscord(msg);
+await sendDiscord(msg);
 
 }
 
@@ -335,9 +403,9 @@ ${report.room}
 👨‍💻 ผู้ดำเนินการ:
 ${req.body.admin}`;
 
-sendLine(msg);
+await sendLine(msg);
 
-sendDiscord(msg);
+await sendDiscord(msg);
 
 }
 
@@ -411,16 +479,8 @@ success:true
 
 
 /* =========================
-   START
+   LINE WEBHOOK
 ========================= */
-
-app.listen(PORT,()=>{
-
-console.log(
-"Server running on port " + PORT
-);
-
-});
 
 app.post("/webhook",async(req,res)=>{
 
@@ -431,7 +491,7 @@ for(const event of events){
 if(event.source?.userId){
 
 console.log(
-"USER ID:",
+"LINE USER ID:",
 event.source.userId
 );
 
@@ -440,5 +500,29 @@ event.source.userId
 }
 
 res.sendStatus(200);
+
+});
+
+
+/* =========================
+   HOME
+========================= */
+
+app.get("/",(req,res)=>{
+
+res.send("REPORT SYSTEM ONLINE");
+
+});
+
+
+/* =========================
+   START
+========================= */
+
+app.listen(PORT,()=>{
+
+console.log(
+"Server running on port " + PORT
+);
 
 });
