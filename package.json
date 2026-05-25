@@ -1,14 +1,16 @@
 {
-  "name":"report-system",
-  "version":"1.0.0",
-  "main":"server.js",
-  "scripts":{
-    "start":"node server.js"
+  "name": "report-system",
+  "version": "1.0.0",
+  "description": "Realtime Support System with LINE and Discord Notify",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
   },
-  "dependencies":{
-    "cors":"^2.8.5",
-    "express":"^4.18.2",
-    "fs-extra":"^11.2.0",
-    "node-fetch":"^3.3.2"
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "fs-extra": "^11.2.0",
+    "node-fetch": "^3.3.2"
   }
 }
