@@ -30,7 +30,8 @@ const LINE_CHANNEL_ACCESS_TOKEN =
 const LINE_USER_IDS = [
 
 "U4758132c4676cefd0ed294d065bea8fb", /*T*/
-"Uadf0cca036b37a8a23e78f65a4588aac" /*King*/
+"Uadf0cca036b37a8a23e78f65a4588aac", /*King*/
+"U3529b8616ab10fed4269633cd0527ad6" /*Ton*/
 
 ];
 
