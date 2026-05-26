@@ -40,7 +40,7 @@ const LINE_USER_IDS = [
 ========================= */
 
 const DISCORD_WEBHOOK =
-"https://discord.com/api/webhooks/1506876755577929810/NaRG_f8-mln2ZvsSGgAJCl4azBmzTdD9ufBGzULS1hLAQ202DqEJdra4KBeGNJ7aRxYd";
+"https://discord.com/api/webhooks/1508635564365189142/8PoJvIKdZrrnzpaeHS4sb6yd9_xvVk_NQf_kFXRXWlK6_SF6m1FiKasA0EgMIUwwAVNF";
 
 
 /* =========================
